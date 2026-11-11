@@ -1,11 +1,30 @@
-# Test your FastAPI endpoints
+@baseUrl = http://127.0.0.1:8000
 
-GET http://127.0.0.1:8000/
+### Criar produto e associar uma tag
+POST {{baseUrl}}/api/v1/products
+Content-Type: application/json
+
+{
+  "name": "Caixa de chá",
+  "category": "Alimentos",
+  "description": "Caixa com 20 sachês de chá.",
+  "audio_description": "Caixa de chá de camomila, com 20 sachês. Consulte a embalagem para informações sobre ingredientes.",
+  "tag_id": "04-A1-B2-C3"
+}
+
+### Consultar catálogo
+GET {{baseUrl}}/api/v1/products
 Accept: application/json
 
-###
+### Simular leitura da tag pelo sensor
+POST {{baseUrl}}/api/v1/readings
+Content-Type: application/json
 
-GET http://127.0.0.1:8000/hello/User
+{
+  "tag_id": "04-A1-B2-C3",
+  "reader_id": "sensor-prateleira-01"
+}
+
+### Consultar histórico, opcionalmente filtrando pela tag
+GET {{baseUrl}}/api/v1/readings?tag_id=04-A1-B2-C3
 Accept: application/json
-
-###
