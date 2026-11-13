@@ -78,13 +78,14 @@ async def registrar_leitura(db, data: CriarLeitura) -> dict:
     item = await db.items.find_one({"tag_id": data.tag_id})
     leitura = {
         "tag_id": data.tag_id,
-        "leitor_id": data.reader_id,
+        "leitor_id": data.leitor_id,
         "leitura_em": datetime.now(timezone.utc),
-        "status": "matched" if item else "unknown",
+        "status": "encontrada" if item else "desconhecida",
         "item_id": item["_id"] if item else None,
-        "nome_item": item["name"] if item else None,
+        "nome_item": item["nome"] if item else None,
+        "comodo_da_casa": item["comodo_da_casa"] if item else None
     }
-    result = await db.readings.insert_one(leitura)
+    result = await db.leituras.insert_one(leitura)
     resposta = {
         **leitura,
         "_id": result.inserted_id,
@@ -98,8 +99,8 @@ async def listar_leituras(db, skip: int, limit: int, tag_id: str | None) -> list
     if tag_id:
         query["tag_id"] = tag_id
     leituras = (
-        await db.readings.find(query)
-        .sort("read_at", -1)
+        await db.leituras.find(query)
+        .sort("leitura_em", -1)
         .skip(skip)
         .limit(limit)
         .to_list()

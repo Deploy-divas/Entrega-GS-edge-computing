@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
             unique=True,
             partialFilterExpression={"tag_id": {"$type": "string"}},
         )
-        await app.state.db.readings.create_index([("read_at", -1)])
+        await app.state.db.readings.create_index([("leitura_em", -1)])
         yield
     finally:
         await cliente.close()

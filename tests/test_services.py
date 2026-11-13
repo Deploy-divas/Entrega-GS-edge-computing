@@ -20,35 +20,35 @@ class FakeCollection:
         return SimpleNamespace(inserted_id=ObjectId())
 
 
-class ReadingServiceTests(unittest.IsolatedAsyncioTestCase):
+class ServiceLeituraTeste(unittest.IsolatedAsyncioTestCase):
     #tag_reconhecida_retorna_audio
-    async def teste_tag_reconhecida_retorna_audio(self):
+    async def test_tag_reconhecida_retorna_audio(self):
         item = {
             "_id": ObjectId(),
             "tag_id": "04-A1-B2",
             "nome": "Caixa de chá",
             "audio_descricao": "Chá de camomila.",
         }
-        readings = FakeCollection()
-        db = SimpleNamespace(products=FakeCollection(item), readings=readings)
+        leituras = FakeCollection()
+        db = SimpleNamespace(itens=FakeCollection(item), leituras=leituras)
 
         result = await registrar_leitura(db, CriarLeitura(tag_id="04-a1-b2"))
 
         self.assertEqual(result["status"], "encontrada")
         self.assertEqual(result["nome"], "Caixa de chá")
         self.assertEqual(result["audio_descricao"], "Chá de camomila.")
-        self.assertEqual(readings.inserted["item_id"], item["_id"])
+        self.assertEqual(leituras.inserted["item_id"], item["_id"])
 
-    async def teste_tag_desconhecida_salvando(self):
-        readings = FakeCollection()
-        db = SimpleNamespace(products=FakeCollection(), readings=readings)
+    async def test_tag_desconhecida_salvando(self):
+        leituras = FakeCollection()
+        db = SimpleNamespace(itens=FakeCollection(), leituras=leituras)
 
-        result = await registrar_leitura(db, CriarLeitura(tag_id="unknown-tag"))
+        result = await registrar_leitura(db, CriarLeitura(tag_id="tag-desconhecida"))
 
         self.assertEqual(result["status"], "desconhecida")
         self.assertIsNone(result["item_id"])
         self.assertIsNone(result["audio_descricao"])
-        self.assertEqual(readings.inserted["tag_id"], "UNKNOWN-TAG")
+        self.assertEqual(leituras.inserted["tag_id"], "tag-desconhecida")
 
 
 if __name__ == "__main__":
