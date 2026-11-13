@@ -11,7 +11,7 @@ def normalizar_tag(valor: str | None) -> str | None:
         raise ValueError("O ID da tag não pode ficar vazio.")
     return valor
 
-class ProductCreate(BaseModel):
+class CriarItem(BaseModel):
     nome: str = Field(min_length=6, max_length=120)
     categoria: str = Field(min_length=6, max_length=80)
     comodo_da_casa: str = Field(min_length=6, max_length=1000)
@@ -33,7 +33,7 @@ class ProductCreate(BaseModel):
         return normalizar_tag(valor)
 
 
-class AtualizarProduto(BaseModel):
+class AtualizarItem(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     categoria: str | None = Field(default=None, min_length=1, max_length=80)
     comodo_da_casa: str | None = Field(default=None, min_length=1, max_length=80)
@@ -63,7 +63,7 @@ class AtualizarProduto(BaseModel):
         return self
 
 
-class RespostaProduto(BaseModel):
+class RespostaItem(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(alias="_id")
@@ -75,7 +75,7 @@ class RespostaProduto(BaseModel):
     tag_id: str | None = None
 
 
-class ReadingCreate(BaseModel):
+class CriarLeitura(BaseModel):
     tag_id: str = Field(min_length=1, max_length=100)
     reader_id: str | None = Field(default=None, max_length=100)
 
@@ -97,7 +97,7 @@ class ReadingCreate(BaseModel):
         return valor
 
 
-class ReadingResponse(BaseModel):
+class RespostaLeitura(BaseModel):
     id: str
     tag_id: str
     leitor_id: str | None = None
@@ -109,7 +109,7 @@ class ReadingResponse(BaseModel):
     leitura_em: datetime
 
 
-class ReadingHistoryItem(BaseModel):
+class HistoricoLeitura(BaseModel):
     id: str
     tag_id: str
     leitor_id: str | None = None

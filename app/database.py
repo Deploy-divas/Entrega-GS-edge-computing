@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
         await cliente.admin.command("ping")
         app.state.mongo_client = cliente
         app.state.db = cliente[os.getenv("MONGODB_DATABASE", "inclusive_catalog")]
-        await app.state.db.products.create_index(
+        await app.state.db.items.create_index(
             "tag_id",
             unique=True,
             partialFilterExpression={"tag_id": {"$type": "string"}},

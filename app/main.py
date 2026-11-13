@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.database import lifespan
-from app.routers import products, readings
+from app.routers import itens, readings
 
 app = FastAPI(
     title="API de áudio descrição",
@@ -13,7 +13,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(products.router)
+app.include_router(itens.router)
 app.include_router(readings.router)
 
 
