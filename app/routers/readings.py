@@ -9,7 +9,8 @@ router = APIRouter(prefix="/api/v1/readings", tags=["Leituras"])
 
 @router.post("", response_model=RespostaLeitura, status_code=status.HTTP_201_CREATED)
 async def add_reading(data: CriarLeitura, request: Request):
-    return await registrar_leitura(request.app.state.db, data)
+    await registrar_leitura(request.app.state.db, data)
+    return
 
 @router.get("", response_model=list[HistoricoLeitura])
 async def get_readings(

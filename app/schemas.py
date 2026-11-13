@@ -17,7 +17,7 @@ class CriarItem(BaseModel):
     comodo_da_casa: str = Field(min_length=6, max_length=1000)
     descricao: str = Field(min_length=6, max_length=1000)
     audio_descricao: str = Field(min_length=6, max_length=3000)
-    tag_id: str | None = Field(default=None, max_length=100)
+    tag_id: str = Field(default=None, max_length=100)
 
     @field_validator("nome", "categoria", "descricao", "audio_descricao")
     @classmethod
@@ -34,14 +34,14 @@ class CriarItem(BaseModel):
 
 
 class AtualizarItem(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=120)
+    nome: str | None = Field(default=None, min_length=1, max_length=120)
     categoria: str | None = Field(default=None, min_length=1, max_length=80)
     comodo_da_casa: str | None = Field(default=None, min_length=1, max_length=80)
     descricao: str | None = Field(default=None, min_length=1, max_length=1000)
     audio_descricao: str | None = Field(default=None, min_length=1, max_length=3000)
     tag_id: str | None = Field(default=None, max_length=100)
 
-    @field_validator("name", "categoria", "descricao", "audio_descricao")
+    @field_validator("nome", "categoria", "descricao", "audio_descricao")
     @classmethod
     def strip_text(cls, valor: str | None) -> str | None:
         if valor is None:
@@ -77,7 +77,7 @@ class RespostaItem(BaseModel):
 
 class CriarLeitura(BaseModel):
     tag_id: str = Field(min_length=1, max_length=100)
-    reader_id: str | None = Field(default=None, max_length=100)
+    leitor_id: str | None = Field(default=None, max_length=100)
 
     @field_validator("tag_id")
     @classmethod
@@ -86,7 +86,7 @@ class CriarLeitura(BaseModel):
         assert normalizado is not None
         return normalizado
 
-    @field_validator("reader_id")
+    @field_validator("leitor_id")
     @classmethod
     def limpar_leitor_id(cls, valor: str | None) -> str | None:
         if valor is None:
@@ -101,7 +101,7 @@ class RespostaLeitura(BaseModel):
     id: str
     tag_id: str
     leitor_id: str | None = None
-    status: Literal["matched", "unknown"]
+    status: Literal["encontrada", "desconhecida"]
     item_id: str | None = None
     nome_item: str | None = None
     comodo_da_casa: str | None = None
@@ -113,7 +113,7 @@ class HistoricoLeitura(BaseModel):
     id: str
     tag_id: str
     leitor_id: str | None = None
-    status: Literal["matched", "unknown"]
+    status: Literal["encontrada", "desconhecida"]
     item_id: str | None = None
     nome_item: str | None = None
     leitura_em: datetime
