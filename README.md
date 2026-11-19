@@ -51,6 +51,9 @@ sudo docker ps
 A documentação interativa estará disponível em:
 http://158.23.58.132:8000/docs
 
+<img width="826" height="645" alt="Captura de tela de 2026-11-18 18-11-15" src="https://github.com/user-attachments/assets/4c56f8ab-d1cc-4417-a456-c63ecd0d7e89" />
+
+
 ## 2. Configurando o Simulador no Wokwi (ESP32)
 Ligações dos Pinos
 LCD 16x2 I2C: SDA -> Pino 21 | SCL -> Pino 22 | VCC -> 3V3/5V | GND -> GND
