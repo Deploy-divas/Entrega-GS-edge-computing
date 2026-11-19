@@ -1,0 +1,6 @@
+.env
+.env.*
+atlas-credentials.env
+*.pem
+*.key
+.idea/

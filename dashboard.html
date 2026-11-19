@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CitizenTech — Dashboard IoT de Acessibilidade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+    <div class="max-w-6xl mx-auto space-y-6">
+      <!-- Cabeçalho -->
+      <header
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-4"
+      >
+        <div>
+          <h1 class="text-2xl font-bold text-emerald-400">CitizenTech IoT</h1>
+          <p class="text-sm text-slate-400">
+            Monitoramento RFID e Audiodescrição em Tempo Real
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span
+            id="status-conexao"
+            class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300"
+            >Conectando...</span
+          >
+          <button
+            onclick="buscarLeituras()"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+          >
+            Atualizar Agora
+          </button>
+        </div>
+      </header>
+
+      <!-- Cards de Resumo (Informação) -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <p class="text-xs text-slate-400 uppercase">Total de Leituras</p>
+          <p id="kpi-total" class="text-3xl font-bold mt-1">0</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <p class="text-xs text-slate-400 uppercase">Tags Reconhecidas</p>
+          <p
+            id="kpi-encontradas"
+            class="text-3xl font-bold text-emerald-400 mt-1"
+          >
+            0
+          </p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <p class="text-xs text-slate-400 uppercase">Tags Desconhecidas</p>
+          <p
+            id="kpi-desconhecidas"
+            class="text-3xl font-bold text-amber-400 mt-1"
+          >
+            0
+          </p>
+        </div>
+      </section>
+
+      <!-- Tabela de Histórico + Cadastro Rápido -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Histórico -->
+        <section
+          class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden"
+        >
+          <div class="p-4 border-b border-slate-800 font-semibold">
+            Histórico de Leituras (IoT)
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800/50 text-slate-400 text-xs uppercase">
+                <tr>
+                  <th class="p-3">Tag ID</th>
+                  <th class="p-3">Item / Descrição</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Horário</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-leituras" class="divide-y divide-slate-800">
+                <tr>
+                  <td colspan="4" class="p-4 text-center text-slate-500">
+                    Carregando dados...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Ação: Cadastrar Nova Tag -->
+        <section
+          class="bg-slate-900 border border-slate-800 rounded-xl p-4 h-fit"
+        >
+          <h3 class="font-semibold mb-3">Cadastrar Nova Tag</h3>
+          <form id="form-item" class="space-y-3 text-sm">
+            <input
+              id="tag_id"
+              type="text"
+              placeholder="Tag ID (ex: 55667788)"
+              required
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5"
+            />
+            <input
+              id="categoria"
+              type="text"
+              placeholder="Categoria (ex: medicamento)"
+              required
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5"
+            />
+            <input
+              id="audiodescricao"
+              type="text"
+              placeholder="Nome do objeto"
+              required
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5"
+            />
+
+            <button
+              type="submit"
+              class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg transition"
+            >
+              Salvar Tag no Banco
+            </button>
+            <p id="msg-form" class="text-xs text-center"></p>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://158.23.58.132:8000/api/v1";
+      let ultimoTextoParaFalar = "";
+      let ultimoIdLido = null;
+
+      function falar(texto) {
+        if (!texto || !("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const fala = new SpeechSynthesisUtterance(texto);
+        fala.lang = "pt-BR";
+        window.speechSynthesis.speak(fala);
+      }
+
+      function falarUltimaLeitura() {
+        falar(
+          ultimoTextoParaFalar ||
+            "Nenhuma descrição disponível para esta leitura.",
+        );
+      }
+
+      async function buscarLeituras() {
+        const badge = document.getElementById("status-conexao");
+        try {
+          const res = await fetch(`${API_BASE}/leituras`);
+          if (!res.ok) throw new Error("Erro na API");
+          const dados = await res.json();
+
+          badge.textContent = "Online (Azure)";
+          badge.className =
+            "text-xs px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800";
+
+          // Atualiza KPIs
+          const encontradas = dados.filter(
+            (d) => d.status === "encontrada",
+          ).length;
+          const desconhecidas = dados.length - encontradas;
+          document.getElementById("kpi-total").textContent = dados.length;
+          document.getElementById("kpi-encontradas").textContent = encontradas;
+          document.getElementById("kpi-desconhecidas").textContent =
+            desconhecidas;
+
+          // Atualiza Última Leitura (assume mais recente primeiro ou último do array)
+          if (dados.length > 0) {
+            const ultima = dados[0];
+            const nome = ultima.nome || `Tag ${ultima.tag_id}`;
+            const textoAudio =
+              ultima.audiodescricao ||
+              (ultima.status === "encontrada"
+                ? nome
+                : "Tag desconhecida. Cadastre este item no painel.");
+          }
+
+          // Preenche Tabela
+          const tbody = document.getElementById("tabela-leituras");
+          tbody.innerHTML = dados
+            .slice(0, 15)
+            .map(
+              (item) => `
+  <tr class="hover:bg-slate-800/40">
+    <td class="p-3 font-mono text-xs">${item.tag_id}</td>
+    <td class="p-3">
+      <div class="text-xs text-slate-400">${item.audiodescricao || "Sem audiodescrição"}</div>
+    </td>
+    <td class="p-3">
+      <span class="px-2 py-0.5 rounded text-xs font-medium ${
+        item.status === "encontrada"
+          ? "bg-emerald-950 text-emerald-400"
+          : "bg-amber-950 text-amber-400"
+      }">${item.status}</span>
+    </td>
+    <td class="p-3 text-xs text-slate-400">${new Date(item.leitura_em).toLocaleString("pt-BR")}</td>
+  </tr>
+`,
+            )
+            .join("");
+        } catch (err) {
+          console.error("Erro ao buscar leituras:", err);
+          badge.textContent = "Offline / Erro CORS";
+          badge.className =
+            "text-xs px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800";
+        }
+      }
+
+      // Cadastro de Novo Item
+      document
+        .getElementById("form-item")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const msg = document.getElementById("msg-form");
+          msg.textContent = "Salvando...";
+
+          const payload = {
+            tag_id: document.getElementById("tag_id").value.trim(),
+            categoria: document.getElementById("categoria").value.trim(),
+            conteudo_audio: {
+              audiodescricao: document
+                .getElementById("audiodescricao")
+                .value.trim(),
+            },
+          };
+
+          try {
+            const res = await fetch(`${API_BASE}/itens`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error("Falha ao cadastrar");
+            msg.textContent = "Tag cadastrada com sucesso!";
+            msg.className = "text-xs text-center text-emerald-400";
+            e.target.reset();
+          } catch (err) {
+            msg.textContent = "Erro ao salvar. Verifique a API.";
+            msg.className = "text-xs text-center text-red-400";
+          }
+        });
+
+      // Atualiza as leituras cada 3 segundos
+      buscarLeituras();
+      setInterval(buscarLeituras, 3000);
+    </script>
+  </body>
+</html>

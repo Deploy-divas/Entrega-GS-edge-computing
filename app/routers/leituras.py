@@ -1,0 +1,22 @@
+from typing import Annotated
+
+from fastapi import APIRouter, Query, Request, status
+
+from app.schemas import CriarLeitura, HistoricoLeitura, RespostaLeitura
+from app.services import listar_leituras, registrar_leitura
+
+router = APIRouter(prefix="/api/v1/leituras", tags=["Leituras"])
+
+@router.post("", response_model=RespostaLeitura, status_code=status.HTTP_201_CREATED)
+async def adicionar_leitura(data: CriarLeitura, request: Request):
+    leitura_criada = await registrar_leitura(request.app.state.db, data)
+    return leitura_criada
+
+@router.get("", response_model=list[RespostaLeitura])
+async def buscar_leituras(
+    request: Request,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    tag_id: str | None = None,
+):
+    return await listar_leituras(request.app.state.db, skip, limit, tag_id)
